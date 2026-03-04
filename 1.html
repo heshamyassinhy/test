@@ -81,7 +81,7 @@
                 <!-- قسم الفيديو الرئيسي -->
                 <div class="lg:col-span-2">
                     <div class="glass rounded-3xl overflow-hidden aspect-video bg-black relative shadow-2xl">
-                        <video id="mainVideo" controls class="w-full h-full">
+                        <video id="mainVideo" controls class="w-full h-full" playsinline>
                             <p>المتصفح لا يدعم تشغيل الفيديو</p>
                         </video>
                     </div>
@@ -108,11 +108,15 @@
 
         // دالة تحميل البيانات من الـ Local Storage
         function loadData() {
-            const storedData = localStorage.getItem('deraah_courses');
-            if (storedData) {
-                allCourses = JSON.parse(storedData);
+            try {
+                const storedData = localStorage.getItem('deraah_courses');
+                if (storedData) {
+                    allCourses = JSON.parse(storedData);
+                }
+                renderCourses();
+            } catch (e) {
+                console.error("Error loading data", e);
             }
-            renderCourses();
         }
 
         // دالة عرض الكروت في الصفحة الرئيسية
@@ -120,7 +124,6 @@
             const grid = document.getElementById('coursesGrid');
             grid.innerHTML = '';
 
-            // عرض الدورات "المنشورة" فقط
             const publishedCourses = allCourses.filter(c => c.published);
 
             if (publishedCourses.length === 0) {
@@ -128,13 +131,13 @@
                 return;
             }
 
-            publishedCourses.forEach(course => {
+            publishedCourses.forEach((course, index) => {
                 grid.innerHTML += `
                     <div class="glass p-4 rounded-3xl course-card">
                         <img src="${course.image || 'https://via.placeholder.com/400x225?text=Deraah'}" 
                              class="w-full h-44 object-cover rounded-2xl mb-4 shadow-lg">
                         <h3 class="text-xl font-bold mb-4 line-clamp-1">${course.name}</h3>
-                        <button onclick='openPlayerModal(${JSON.stringify(course).replace(/'/g, "&apos;")})' 
+                        <button onclick="openPlayerByIndex(${index})" 
                                 class="pink-btn w-full py-3 rounded-xl font-bold shadow-lg shadow-pink-500/20">
                             دخول الدورة
                         </button>
@@ -143,12 +146,16 @@
             });
         }
 
-        // دالة فتح المشغل وتحميل محتوى الدورة
-        function openPlayerModal(course) {
+        // فتح المشغل باستخدام الـ Index لتجنب مشاكل Encode البيانات الضخمة (Base64)
+        function openPlayerByIndex(index) {
+            const publishedCourses = allCourses.filter(c => c.published);
+            const course = publishedCourses[index];
+            if (!course) return;
+
             activeCourse = course;
             document.getElementById('modalTitle').innerText = course.name;
             document.getElementById('playerModal').style.display = 'block';
-            document.body.style.overflow = 'hidden'; // منع التمرير في الخلفية
+            document.body.style.overflow = 'hidden';
 
             const menu = document.getElementById('lessonsMenu');
             menu.innerHTML = '';
@@ -158,12 +165,11 @@
                 return;
             }
 
-            // بناء قائمة الدروس
-            course.lessons.forEach((lesson, index) => {
+            course.lessons.forEach((lesson, i) => {
                 menu.innerHTML += `
-                    <button onclick="playVideo(${index})" 
+                    <button onclick="playVideo(${i})" 
                             class="w-full text-right p-4 rounded-xl bg-white/5 hover:bg-pink-500/20 border border-white/5 transition-all flex items-center gap-3">
-                        <span class="w-8 h-8 rounded-full bg-pink-500/20 flex items-center justify-center text-pink-400 text-xs">${index + 1}</span>
+                        <span class="w-8 h-8 rounded-full bg-pink-500/20 flex items-center justify-center text-pink-400 text-xs">${i + 1}</span>
                         <div class="flex-1">
                             <p class="text-sm font-bold text-white">${lesson.name}</p>
                             <p class="text-[10px] text-gray-500">فيديو تعليمي</p>
@@ -172,25 +178,37 @@
                 `;
             });
 
-            // تشغيل أول فيديو تلقائياً عند الفتح
             playVideo(0);
         }
 
         // دالة تشغيل الفيديو المختار
         function playVideo(index) {
+            if (!activeCourse || !activeCourse.lessons[index]) return;
+            
             const lesson = activeCourse.lessons[index];
             const videoElement = document.getElementById('mainVideo');
             const titleDisplay = document.getElementById('lessonTitleDisplay');
 
             titleDisplay.innerText = lesson.name;
 
-            // التأكد من وجود رابط للفيديو (سواء كان Base64 أو رابط خارجي)
-            if (lesson.fileUrl) {
-                videoElement.src = lesson.fileUrl;
+            // جلب الرابط مع التأكد من عدم وجود مسافات زائدة
+            const videoSrc = (lesson.fileUrl || lesson.content || lesson.url || "").trim();
+
+            if (videoSrc) {
+                videoElement.pause();
+                videoElement.removeAttribute('src'); // تنظيف المصدر القديم
+                videoElement.src = videoSrc;
                 videoElement.load();
-                videoElement.play().catch(err => console.log("التشغيل التلقائي يتطلب تفاعل المستخدم أولاً"));
+                
+                // محاولة التشغيل مع معالجة الأخطاء
+                const playPromise = videoElement.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(error => {
+                        console.log("Play interrupted or requires interaction");
+                    });
+                }
             } else {
-                alert("عذراً، ملف الفيديو هذا غير متوفر.");
+                alert("عذراً، ملف الفيديو لهذا الدرس غير متوفر.");
             }
         }
 
@@ -198,12 +216,11 @@
         function closePlayer() {
             const videoElement = document.getElementById('mainVideo');
             videoElement.pause();
-            videoElement.src = ""; // تفريغ الذاكرة
+            videoElement.src = "";
             document.getElementById('playerModal').style.display = 'none';
             document.body.style.overflow = 'auto';
         }
 
-        // التحقق من التحديثات كلما تم فتح الصفحة
         window.addEventListener('focus', loadData);
         window.onload = loadData;
     </script>

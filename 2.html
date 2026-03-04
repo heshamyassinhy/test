@@ -3,73 +3,165 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة التحكم | إدارة الفيديوهات</title>
+    <title>لوحة التحكم | أكاديمية درعه الاحترافية</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;700&display=swap');
-        body { font-family: 'Tajawal', sans-serif; background: #0f172a; color: white; min-height: 100vh; }
-        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .pink-btn { background: #ff69b4; transition: all 0.3s; }
-        .pink-btn:hover { background: #ff1493; transform: translateY(-2px); }
+        
+        :root {
+            --primary-pink: #ff69b4;
+            --dark-bg: #0f172a;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+        }
+
+        body { 
+            font-family: 'Tajawal', sans-serif; 
+            background-color: var(--dark-bg); 
+            color: white; 
+            min-height: 100vh;
+        }
+
+        .glass { 
+            background: var(--glass-bg); 
+            backdrop-filter: blur(12px); 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+        }
+
+        .pink-gradient { 
+            background: linear-gradient(135deg, #ff69b4 0%, #ff1493 100%); 
+        }
+
+        .pink-btn {
+            background: var(--primary-pink);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .pink-btn:hover:not(:disabled) {
+            background: #ff1493;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -10px #ff1493;
+        }
+
+        .pink-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--dark-bg); }
+        ::-webkit-scrollbar-thumb { background: var(--primary-pink); border-radius: 10px; }
+
+        .modal-animate {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .input-style {
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: all 0.3s;
+        }
+
+        .input-style:focus {
+            border-color: var(--primary-pink);
+            background: rgba(255, 255, 255, 0.12);
+            outline: none;
+        }
     </style>
 </head>
 <body class="p-4 md:p-8">
 
     <div class="max-w-6xl mx-auto">
-        <div class="flex justify-between items-center mb-10 glass p-6 rounded-3xl">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row justify-between items-center mb-10 glass p-8 rounded-[2rem] gap-4">
             <div>
-                <h1 class="text-3xl font-bold">لوحة تحكم <span class="text-pink-400">المشرف</span></h1>
-                <p class="text-gray-400">ارفع الفيديوهات من جهازك لتظهر للمتدربين</p>
+                <h1 class="text-3xl font-bold tracking-tight">لوحة تحكم <span class="text-pink-400">المشرف</span></h1>
+                <p class="text-gray-400 mt-1">نظام رفع الفيديوهات السحابي (Cloudinary) - متصل بنجاح</p>
             </div>
-            <button onclick="showCreateModal()" class="pink-btn px-6 py-3 rounded-xl font-bold">+ إنشاء دورة</button>
+            <div class="flex gap-4">
+                <button onclick="showCreateModal()" class="pink-btn px-8 py-3 rounded-2xl font-bold shadow-xl flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    إنشاء دورة جديدة
+                </button>
+            </div>
         </div>
 
-        <div id="coursesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        <div id="coursesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
     </div>
 
     <!-- Modal: Create Course -->
-    <div id="createModal" class="fixed inset-0 bg-black/80 hidden z-50 items-center justify-center p-4">
-        <div class="glass max-w-lg w-full p-8 rounded-3xl">
-            <h2 class="text-2xl font-bold mb-6 text-pink-400">إضافة دورة جديدة</h2>
-            <input type="text" id="courseName" placeholder="اسم الدورة" class="w-full bg-white/10 p-3 rounded-xl mb-4 outline-none border border-white/10">
-            <input type="file" id="courseImg" accept="image/*" class="mb-4 block text-sm">
-            <button onclick="saveCourse()" class="pink-btn w-full py-3 rounded-xl font-bold">حفظ الأساسيات</button>
-            <button onclick="hideModal('createModal')" class="w-full mt-2 text-gray-400 text-sm">إلغاء</button>
+    <div id="createModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden z-50 items-center justify-center p-4">
+        <div class="glass max-w-lg w-full p-8 rounded-[2.5rem] modal-animate shadow-2xl">
+            <h2 class="text-2xl font-bold mb-6 text-pink-400 flex items-center gap-3">
+                <span>📚</span> بيانات الدورة الأساسية
+            </h2>
+            <div class="space-y-5">
+                <input type="text" id="courseName" placeholder="عنوان الدورة" class="w-full input-style p-4 rounded-2xl">
+                <div class="relative">
+                    <input type="file" id="courseImgFile" accept="image/*" class="hidden" onchange="previewImage(this)">
+                    <label for="courseImgFile" class="w-full cursor-pointer bg-white/5 border-2 border-dashed border-white/10 p-6 rounded-2xl flex flex-col items-center hover:border-pink-500/50 transition">
+                        <div id="imgPreview" class="hidden mb-3 w-full h-32 rounded-xl overflow-hidden">
+                            <img id="targetPreview" src="" class="w-full h-full object-cover">
+                        </div>
+                        <span id="imgNameDisplay" class="text-sm text-gray-400">اختر صورة الغلاف من جهازك</span>
+                    </label>
+                </div>
+                <button onclick="saveCourse()" class="pink-btn w-full py-4 rounded-2xl font-bold text-lg">إنشاء الدورة</button>
+                <button onclick="hideModal('createModal')" class="w-full text-gray-500 text-sm">إلغاء</button>
+            </div>
         </div>
     </div>
 
-    <!-- Modal: Edit Content (الذي يحتوي على رفع الفيديو) -->
-    <div id="editModal" class="fixed inset-0 bg-black/90 hidden z-50 overflow-y-auto p-4">
-        <div class="glass max-w-4xl mx-auto my-8 p-8 rounded-3xl relative">
-            <button onclick="hideModal('editModal')" class="absolute top-4 left-4 text-2xl text-gray-400">&times;</button>
-            <h2 class="text-2xl font-bold mb-8 text-pink-400">إدارة محتوى: <span id="editCourseTitle" class="text-white"></span></h2>
+    <!-- Modal: Edit Content -->
+    <div id="editModal" class="fixed inset-0 bg-black/95 backdrop-blur-md hidden z-50 overflow-y-auto p-4">
+        <div class="glass max-w-5xl mx-auto my-8 p-8 rounded-[3rem] relative shadow-2xl">
+            <button onclick="hideModal('editModal')" class="absolute top-8 left-8 text-2xl">&times;</button>
+            <h2 id="editCourseTitle" class="text-3xl font-bold mb-10"></h2>
             
-            <div class="grid md:grid-cols-2 gap-8">
-                <div class="space-y-4">
-                    <h3 class="font-bold border-b border-white/10 pb-2">المحتوى الحالي</h3>
-                    <div id="lessonsList" class="space-y-2"></div>
+            <div class="grid lg:grid-cols-5 gap-10">
+                <div class="lg:col-span-3">
+                    <h3 class="font-bold mb-4">قائمة الدروس المرفوعة</h3>
+                    <div id="lessonsList" class="space-y-3"></div>
                 </div>
 
-                <div class="space-y-4 bg-white/5 p-6 rounded-2xl">
-                    <h3 class="font-bold text-pink-300">رفع فيديو جديد من الكمبيوتر</h3>
-                    <input type="text" id="lessonName" placeholder="عنوان الدرس" class="w-full bg-white/10 p-2 rounded-lg text-sm">
-                    <input type="file" id="contentFile" accept="video/*" class="w-full text-xs">
-                    <div id="uploadStatus" class="text-xs text-pink-400 hidden">جاري معالجة الفيديو... يرجى الانتظار</div>
-                    <button id="addLessonBtn" onclick="addLessonWithFile()" class="w-full bg-pink-500 py-2 rounded-lg font-bold text-sm">إضافة الفيديو للدورة</button>
+                <div class="lg:col-span-2 space-y-6">
+                    <div class="bg-white/5 p-8 rounded-[2rem] border border-white/5">
+                        <h3 class="font-bold text-pink-400 mb-6">رفع فيديو الدرس</h3>
+                        <div class="space-y-4">
+                            <input type="text" id="lessonName" placeholder="عنوان الدرس" class="w-full input-style p-3 rounded-xl">
+                            <input type="file" id="contentFile" accept="video/*" class="w-full text-xs">
+                            
+                            <!-- Progress Bar -->
+                            <div id="progressArea" class="hidden">
+                                <div class="w-full bg-white/10 rounded-full h-2 mt-4">
+                                    <div id="progressBar" class="pink-gradient h-2 rounded-full transition-all" style="width: 0%"></div>
+                                </div>
+                                <p id="progressPercent" class="text-[10px] text-center mt-1">جاري الرفع: 0%</p>
+                            </div>
+
+                            <button id="addLessonBtn" onclick="uploadToCloudinary()" class="pink-btn w-full py-3 rounded-xl font-bold">بدء الرفع السحابي</button>
+                        </div>
+                    </div>
                 </div>
             </div>
             
-            <div class="mt-8 pt-6 border-t border-white/10 flex justify-between items-center">
-                <div class="flex items-center gap-2">
-                    <input type="checkbox" id="isPublished" class="w-5 h-5">
-                    <label>نشر الدورة للجميع</label>
-                </div>
-                <button onclick="updateCourseData()" class="pink-btn px-8 py-2 rounded-lg font-bold">حفظ نهائي</button>
+            <div class="mt-10 pt-8 border-t border-white/10 flex justify-end">
+                <button onclick="updateCourseData()" class="pink-btn px-12 py-4 rounded-2xl font-bold">حفظ نهائي للدورة</button>
             </div>
         </div>
     </div>
 
     <script>
+        // === إعدادات Cloudinary المحدثة ===
+        const CLOUDINARY_CLOUD_NAME = 'dm4rlh6b7';
+        const CLOUDINARY_UPLOAD_PRESET = 'heshohesh'; 
+
         let courses = JSON.parse(localStorage.getItem('deraah_courses')) || [];
         let currentEditId = null;
 
@@ -77,32 +169,132 @@
             const container = document.getElementById('coursesContainer');
             container.innerHTML = '';
             courses.forEach(course => {
+                const isPublished = course.published === true;
                 container.innerHTML += `
-                    <div class="glass p-4 rounded-3xl">
-                        <img src="${course.image || ''}" class="w-full h-32 object-cover rounded-2xl mb-4 bg-gray-800">
-                        <h3 class="font-bold">${course.name}</h3>
-                        <div class="mt-4 flex gap-2">
-                            <button onclick="openEdit(${course.id})" class="flex-1 bg-white/10 py-2 rounded-lg text-xs">تعديل المحتوى</button>
-                            <button onclick="deleteCourse(${course.id})" class="bg-red-500/20 text-red-400 px-3 py-2 rounded-lg text-xs">حذف</button>
+                    <div class="glass p-5 rounded-[2rem] hover:border-pink-500/30 transition-all relative overflow-hidden">
+                        ${isPublished ? 
+                            '<span class="absolute top-4 left-4 bg-green-500 text-white text-[10px] px-3 py-1 rounded-full font-bold shadow-lg z-10">منشورة</span>' : 
+                            '<span class="absolute top-4 left-4 bg-yellow-500/20 text-yellow-500 text-[10px] px-3 py-1 rounded-full font-bold border border-yellow-500/30 z-10">مسودة</span>'
+                        }
+                        <img src="${course.image || ''}" class="w-full h-44 object-cover rounded-2xl mb-4">
+                        <h3 class="font-bold mb-4">${course.name}</h3>
+                        <div class="flex flex-col gap-2">
+                            <div class="flex gap-2">
+                                <button onclick="openEdit(${course.id})" class="flex-1 bg-white/5 py-2 rounded-xl text-xs hover:bg-pink-500/20 transition">إدارة المحتوى</button>
+                                <button onclick="togglePublish(${course.id})" class="flex-1 ${isPublished ? 'bg-yellow-500/20 text-yellow-500' : 'bg-green-500/20 text-green-500'} py-2 rounded-xl text-xs hover:opacity-80 transition">
+                                    ${isPublished ? 'إلغاء النشر' : 'نشر الدورة'}
+                                </button>
+                            </div>
+                            <button onclick="deleteCourse(${course.id})" class="w-full bg-red-500/10 text-red-500 py-2 rounded-xl text-xs hover:bg-red-500 hover:text-white transition">حذف الدورة</button>
                         </div>
                     </div>`;
             });
         }
 
+        async function uploadToCloudinary() {
+            const fileInput = document.getElementById('contentFile');
+            const lessonName = document.getElementById('lessonName').value;
+            const file = fileInput.files[0];
+            const btn = document.getElementById('addLessonBtn');
+
+            if (!file || !lessonName) return alert("يرجى إدخال اسم الدرس واختيار ملف");
+
+            btn.disabled = true;
+            document.getElementById('progressArea').classList.remove('hidden');
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+            try {
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/video/upload`, true);
+
+                xhr.upload.onprogress = (e) => {
+                    if (e.lengthComputable) {
+                        const percent = Math.round((e.loaded / e.total) * 100);
+                        document.getElementById('progressBar').style.width = percent + '%';
+                        document.getElementById('progressPercent').innerText = `جاري الرفع: ${percent}%`;
+                    }
+                };
+
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        const response = JSON.parse(xhr.responseText);
+                        const course = courses.find(c => c.id === currentEditId);
+                        if (!course.lessons) course.lessons = [];
+                        course.lessons.push({
+                            name: lessonName,
+                            fileUrl: response.secure_url 
+                        });
+                        renderLessonsList();
+                        alert("تم رفع الفيديو بنجاح إلى السحابة!");
+                        resetUploadUI();
+                    } else {
+                        console.error(xhr.responseText);
+                        alert("فشل الرفع. تأكد من ضبط الـ Preset (heshohesh) على Unsigned في Cloudinary");
+                    }
+                    btn.disabled = false;
+                };
+
+                xhr.onerror = function() {
+                    alert("خطأ في الاتصال بالسيرفر");
+                    btn.disabled = false;
+                };
+
+                xhr.send(formData);
+            } catch (error) {
+                console.error(error);
+                alert("حدث خطأ تقني");
+                btn.disabled = false;
+            }
+        }
+
+        function togglePublish(id) {
+            const course = courses.find(c => c.id === id);
+            course.published = !course.published;
+            localStorage.setItem('deraah_courses', JSON.stringify(courses));
+            renderCourses();
+            const status = course.published ? "تم نشر الدورة بنجاح، ستظهر الآن للمتدربين" : "تم إلغاء النشر، لن تظهر للمتدربين";
+            alert(status);
+        }
+
+        function resetUploadUI() {
+            document.getElementById('progressArea').classList.add('hidden');
+            document.getElementById('progressBar').style.width = '0%';
+            document.getElementById('lessonName').value = '';
+            document.getElementById('contentFile').value = '';
+        }
+
         function showCreateModal() { document.getElementById('createModal').style.display = 'flex'; }
         function hideModal(id) { document.getElementById(id).style.display = 'none'; }
+        
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    document.getElementById('targetPreview').src = e.target.result;
+                    document.getElementById('imgPreview').classList.remove('hidden');
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
 
         async function saveCourse() {
             const name = document.getElementById('courseName').value;
-            const imgInput = document.getElementById('courseImg');
-            if(!name) return alert("الاسم مطلوب");
+            const imgFile = document.getElementById('courseImgFile').files[0];
+            if(!name) return alert("أدخل اسم الدورة");
 
             let imgData = "";
-            if(imgInput.files[0]) {
-                imgData = await toBase64(imgInput.files[0]);
+            if(imgFile) {
+                imgData = await new Promise(r => {
+                    const reader = new FileReader();
+                    reader.onload = e => r(e.target.result);
+                    reader.readAsDataURL(imgFile);
+                });
             }
 
-            courses.push({ id: Date.now(), name, image: imgData, lessons: [], published: false, enrolled: 'all' });
+            courses.push({ id: Date.now(), name, image: imgData, lessons: [], published: false });
             localStorage.setItem('deraah_courses', JSON.stringify(courses));
             renderCourses();
             hideModal('createModal');
@@ -112,7 +304,6 @@
             currentEditId = id;
             const course = courses.find(c => c.id === id);
             document.getElementById('editCourseTitle').innerText = course.name;
-            document.getElementById('isPublished').checked = course.published;
             renderLessonsList();
             document.getElementById('editModal').style.display = 'block';
         }
@@ -120,74 +311,34 @@
         function renderLessonsList() {
             const course = courses.find(c => c.id === currentEditId);
             const list = document.getElementById('lessonsList');
+            if(!course.lessons) course.lessons = [];
             list.innerHTML = course.lessons.map((l, i) => `
-                <div class="flex justify-between items-center bg-white/5 p-2 rounded-lg text-sm">
-                    <span>${l.name}</span>
-                    <button onclick="removeLesson(${i})" class="text-red-400">حذف</button>
+                <div class="bg-white/5 p-4 rounded-xl flex justify-between items-center border border-white/5">
+                    <span class="text-sm font-bold">🎬 ${l.name}</span>
+                    <button onclick="removeLesson(${i})" class="text-red-400 text-xs hover:bg-red-500/10 px-3 py-1 rounded-lg transition">حذف</button>
                 </div>
             `).join('');
         }
 
-        async function addLessonWithFile() {
-            const name = document.getElementById('lessonName').value;
-            const fileInput = document.getElementById('contentFile');
-            const status = document.getElementById('uploadStatus');
-            const btn = document.getElementById('addLessonBtn');
-
-            if(!name || !fileInput.files[0]) return alert("اختر اسماً وفيديو");
-
-            status.classList.remove('hidden');
-            btn.disabled = true;
-
-            try {
-                const videoData = await toBase64(fileInput.files[0]);
-                const course = courses.find(c => c.id === currentEditId);
-                course.lessons.push({
-                    name: name,
-                    type: 'video',
-                    fileUrl: videoData // هنا يتم حفظ فيديو الكمبيوتر كـ Data URL
-                });
-                renderLessonsList();
-                fileInput.value = '';
-                document.getElementById('lessonName').value = '';
-            } catch (e) {
-                alert("فشل رفع الفيديو، قد يكون الحجم كبيراً جداً على المتصفح");
-            } finally {
-                status.classList.add('hidden');
-                btn.disabled = false;
-            }
-        }
-
         function removeLesson(idx) {
-            const course = courses.find(c => c.id === currentEditId);
-            course.lessons.splice(idx, 1);
+            courses.find(c => c.id === currentEditId).lessons.splice(idx, 1);
             renderLessonsList();
         }
 
         function updateCourseData() {
-            const course = courses.find(c => c.id === currentEditId);
-            course.published = document.getElementById('isPublished').checked;
             localStorage.setItem('deraah_courses', JSON.stringify(courses));
             renderCourses();
             hideModal('editModal');
-            alert("تم الحفظ بنجاح!");
+            alert("تم حفظ بيانات الدورة بنجاح");
         }
 
         function deleteCourse(id) {
-            if(confirm('حذف؟')) {
+            if(confirm('هل أنت متأكد من حذف هذه الدورة بالكامل؟')) {
                 courses = courses.filter(c => c.id !== id);
                 localStorage.setItem('deraah_courses', JSON.stringify(courses));
                 renderCourses();
             }
         }
-
-        // تحويل الملف لنص برمجى يمكن حفظه
-        const toBase64 = file => new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = error => reject(error);
-        });
 
         renderCourses();
     </script>
